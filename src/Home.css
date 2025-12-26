@@ -1,0 +1,229 @@
+/* Container */
+.home-container {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #1a1a1a 0%, #2d2d2d 100%);
+  display: flex;
+  flex-direction: column;
+  color: #ffffff;
+  position: relative;
+}
+
+/* Header */
+.home-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 2rem;
+  position: relative;
+  z-index: 10;
+}
+
+.brand-name {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+  background: linear-gradient(135deg, #a78bfa 0%, #ec4899 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.sign-in-btn {
+  background: transparent;
+  border: none;
+  color: #a78bfa;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+  transition: color 0.3s ease;
+}
+
+.sign-in-btn:hover {
+  color: #c4b5fd;
+}
+
+/* Main Content */
+.home-main {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.content-wrapper {
+  text-align: center;
+  max-width: 600px;
+  width: 100%;
+}
+
+.main-heading {
+  font-size: 2rem;
+  font-weight: 600;
+  margin-bottom: 2.5rem;
+  line-height: 1.3;
+  color: #ffffff;
+}
+
+/* Upload Button */
+.upload-button {
+  width: 100%;
+  max-width: 500px;
+  padding: 1.25rem 2rem;
+  background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%);
+  border: none;
+  border-radius: 12px;
+  color: #ffffff;
+  font-size: 1.125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 24px rgba(139, 92, 246, 0.4);
+  margin: 0 auto;
+  display: block;
+}
+
+.upload-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(139, 92, 246, 0.5);
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+}
+
+.upload-button:active {
+  transform: translateY(0);
+}
+
+/* Description Text */
+.description-text {
+  margin-top: 1.5rem;
+  font-size: 0.95rem;
+  color: #a0a0a0;
+  line-height: 1.6;
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Pagination Dots */
+.pagination-dots {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  margin-top: 2.5rem;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #4a4a4a;
+  transition: all 0.3s ease;
+}
+
+.dot.active {
+  background-color: #ffffff;
+  width: 24px;
+  border-radius: 4px;
+}
+
+/* Bottom Navigation */
+.bottom-nav {
+    display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 0.5rem 0;  /* Reduced from 1rem to 0.5rem */
+  background: rgba(26, 26, 26, 0.95);
+  border-top: 1px solid #333;
+  backdrop-filter: blur(10px);
+  position: sticky;
+  bottom: 0;
+  z-index: 100;
+}
+
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;  /* Reduced from 0.25rem to 0.15rem */
+  background: transparent;
+  border: none;
+  color: #808080;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  padding: 0.25rem 0.75rem;  /* Reduced from 0.5rem 1rem */
+  min-width: 60px;  /* Reduced from 70px */
+}
+
+.nav-item:hover {
+  color: #a78bfa;
+}
+
+.nav-item.active {
+  color: #a78bfa;
+}
+
+.nav-item svg {
+  stroke-width: 2;
+width: 22px;  /* Reduced from 24px */
+  height: 22px;  /* Reduced from 24px */
+}
+
+.nav-item span {
+  font-size: 0.7rem;
+  font-weight: 500;
+  text-transform: lowercase;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .home-header {
+    padding: 1rem 1.5rem;
+  }
+
+  .brand-name {
+    font-size: 1.25rem;
+  }
+
+  .main-heading {
+    font-size: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .upload-button {
+    font-size: 1rem;
+    padding: 1rem 1.5rem;
+  }
+
+  .description-text {
+    font-size: 0.875rem;
+  }
+
+  .nav-item {
+    min-width: 60px;
+    padding: 0.5rem 0.5rem;
+  }
+
+  .nav-item svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .nav-item span {
+    font-size: 0.7rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .home-main {
+    padding: 1rem;
+  }
+
+  .main-heading {
+    font-size: 1.25rem;
+  }
+
+  .upload-button {
+    padding: 0.875rem 1.25rem;
+  }
+}
