@@ -39,10 +39,3 @@ export const historyService = {
     return response.json();
   }
 };
-```
-
-### 5. **Add Environment Variable to Vercel:**
-
-**Vercel Dashboard** → Your Project → **Settings** → **Environment Variables**
-```
-VITE_API_URL=https://peptix-ai.onrender.com

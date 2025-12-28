@@ -28,7 +28,7 @@ export const API_ENDPOINTS = {
 // Helper function for API calls with credentials
 export async function apiCall(url, options = {}) {
   const defaultOptions = {
-    credentials: 'include', // Important for cookies!
+    credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
       ...options.headers,
