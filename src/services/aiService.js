@@ -1,6 +1,8 @@
 
 const GEMINI_API_KEY = import.meta.env.VITE_GOOGLE_GEMINI_API_KEY;
-const CLAUDE_PROXY_URL = '/api/claude';
+import { API_ENDPOINTS } from '../config/api.js';
+
+const CLAUDE_PROXY_URL = API_ENDPOINTS.CLAUDE;
 
 console.log('🔑 API Keys Status:');
 console.log('Gemini:', GEMINI_API_KEY ? '✅ Present' : '❌ Missing');
