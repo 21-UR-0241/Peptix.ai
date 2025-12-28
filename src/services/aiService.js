@@ -177,7 +177,7 @@ Return ONLY valid JSON (no code fences, no extra text) with this structure:
   "peptides": [
     {
       "name": "Name of peptide",
-      "category": "muscle-growth|recovery|skin-health|anti-aging|performance|metabolism|fat-burning|wellness",
+      "category": "Muscle-growth|Recovery|Skin-health|Anti-aging|Performance|Metabolism|Fat-burning|Wellness",
       "description": "Educational reason this peptide is often researched in scenarios like what you see (no promises or prescriptions).",
       "benefits": [
         "Specific research-backed benefit 1",
@@ -242,7 +242,7 @@ function parseAIResponse(content) {
   parsed.analysis.alreadyAchieved = parsed.analysis.alreadyAchieved || [];
   parsed.peptides = parsed.peptides.map((p, i) => ({
     name: p?.name || `Peptide ${i + 1}`,
-    category: p?.category || 'wellness',
+    category: p?.category || 'Wellness',
     description: p?.description || '',
     benefits: Array.isArray(p?.benefits) ? p.benefits : [],
     usage: p?.usage || 'Consult a professional for guidance'

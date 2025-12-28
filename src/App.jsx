@@ -22,8 +22,18 @@ function AppLayout() {
   );
 }
 
+
 function App() {
   return (
+     <>
+      <style>{`
+        html {
+          overflow-y: scroll;
+        }
+        body {
+          scrollbar-gutter: stable;
+        }
+      `}</style>
     <Router>
       <Routes>
         {/* No header on landing/auth pages */}
@@ -32,16 +42,17 @@ function App() {
         <Route path="/signup" element={<Signup />} />
 
         {/* Header shown on app pages */}
-        <Route element={<AppLayout />}>
+       
           <Route path="/scan" element={<Home />} />
           <Route path="/analyze" element={<Analyze />} />
           <Route path="/results" element={<Results />} />
           <Route path="/about" element={<About />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/history" element={<History />} />
-        </Route>
+ 
       </Routes>
     </Router>
+    </>
   );
 }
 

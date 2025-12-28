@@ -46,7 +46,7 @@ export default function Signup() {
     },
     primaryBtn: {
       marginTop: 6,
-      background: "linear-gradient(90deg, #9333ea, #a855f7, #ec4899)",
+      background: "#9333ea",
       border: "none",
       color: "white",
       fontWeight: 900,
