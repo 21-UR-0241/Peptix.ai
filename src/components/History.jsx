@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import BottomNavigation from '../components/BottomNavigation';
+import { historyService } from '../services/history.js'; // Add this import
 
 function History() {
   const navigate = useNavigate();
@@ -16,19 +17,15 @@ function History() {
 
   const fetchHistory = async () => {
     try {
-      const response = await fetch('/api/history', {
-        credentials: 'include'
-      });
-      
-      if (response.status === 401) {
-        navigate('/login');
-        return;
-      }
-
-      const data = await response.json();
+      // Updated to use historyService
+      const data = await historyService.getHistory();
       setHistory(data.history || []);
     } catch (error) {
       console.error('Failed to fetch history:', error);
+      // Check if it's an auth error
+      if (error.message.includes('401') || error.message.includes('Unauthorized')) {
+        navigate('/login');
+      }
     } finally {
       setLoading(false);
     }
@@ -38,15 +35,10 @@ function History() {
     if (!confirm('Are you sure you want to delete this entry?')) return;
 
     try {
-      const response = await fetch(`/api/history/${id}`, {
-        method: 'DELETE',
-        credentials: 'include'
-      });
-
-      if (response.ok) {
-        setHistory(history.filter(item => item.id !== id));
-        setSelectedItem(null);
-      }
+      // Updated to use historyService
+      await historyService.deleteHistory(id);
+      setHistory(history.filter(item => item.id !== id));
+      setSelectedItem(null);
     } catch (error) {
       console.error('Failed to delete history item:', error);
     }

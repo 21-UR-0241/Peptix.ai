@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import BottomNavigation from '../components/BottomNavigation';
+import { authService } from '../services/auth.js'; // Add this import
 
 function Profile() {
   const navigate = useNavigate();
@@ -23,10 +24,8 @@ function Profile() {
 
   const fetchUser = async () => {
     try {
-      const response = await fetch('/api/auth/me', {
-        credentials: 'include'
-      });
-      const data = await response.json();
+      // Updated to use authService
+      const data = await authService.getCurrentUser();
       
       if (data.user) {
         setUser(data.user);
@@ -47,24 +46,13 @@ function Profile() {
     setMessage({ type: '', text: '' });
 
     try {
-      const response = await fetch('/api/auth/update-profile', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(formData)
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        setUser(data.user);
-        setEditing(false);
-        setMessage({ type: 'success', text: 'Profile updated successfully!' });
-      } else {
-        setMessage({ type: 'error', text: data.error || 'Failed to update profile' });
-      }
+      // Updated to use authService
+      const data = await authService.updateProfile(formData.name);
+      setUser(data.user);
+      setEditing(false);
+      setMessage({ type: 'success', text: 'Profile updated successfully!' });
     } catch (error) {
-      setMessage({ type: 'error', text: 'Failed to update profile' });
+      setMessage({ type: 'error', text: error.message || 'Failed to update profile' });
     }
   };
 
@@ -84,36 +72,26 @@ function Profile() {
     }
 
     try {
-      const response = await fetch('/api/auth/change-password', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          currentPassword: passwordData.currentPassword,
-          newPassword: passwordData.newPassword
-        })
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        setPasswordMessage({ type: 'success', text: 'Password changed successfully!' });
-        setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
-        setChangingPassword(false);
-      } else {
-        if (data.error === 'GOOGLE_ACCOUNT') {
-          setPasswordMessage({ 
-            type: 'error', 
-            text: 'Google accounts cannot change password here. Use Google to manage your account.' 
-          });
-        } else if (data.error === 'INVALID_CURRENT_PASSWORD') {
-          setPasswordMessage({ type: 'error', text: 'Current password is incorrect' });
-        } else {
-          setPasswordMessage({ type: 'error', text: data.message || 'Failed to change password' });
-        }
-      }
+      // Updated to use authService
+      await authService.changePassword(
+        passwordData.currentPassword,
+        passwordData.newPassword
+      );
+      
+      setPasswordMessage({ type: 'success', text: 'Password changed successfully!' });
+      setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      setChangingPassword(false);
     } catch (error) {
-      setPasswordMessage({ type: 'error', text: 'Failed to change password' });
+      if (error.message.includes('GOOGLE_ACCOUNT')) {
+        setPasswordMessage({ 
+          type: 'error', 
+          text: 'Google accounts cannot change password here. Use Google to manage your account.' 
+        });
+      } else if (error.message.includes('INVALID_CURRENT_PASSWORD')) {
+        setPasswordMessage({ type: 'error', text: 'Current password is incorrect' });
+      } else {
+        setPasswordMessage({ type: 'error', text: error.message || 'Failed to change password' });
+      }
     }
   };
 
