@@ -1,4 +1,3 @@
-
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
@@ -12,6 +11,7 @@ import {
 import CameraCapture from '../components/CameraCapture';
 import ImageUpload from '../components/ImageUpload';
 import analyzeImageWithAI from '../services/aiService';
+import { historyService } from '../services/history.js'; // Add this
 
 function Analyze() {
   const navigate = useNavigate();
@@ -75,6 +75,7 @@ function Analyze() {
   };
 
   // 🔥 NEW: Function to save analysis to history
+// 🔥 NEW: Function to save analysis to history
   const saveToHistory = async (analysisResult, imageBase64) => {
     try {
       const productName = extractProductName(analysisResult);
@@ -83,25 +84,15 @@ function Analyze() {
       // Create a readable analysis text
       const analysisText = formatAnalysisForHistory(analysisResult);
 
-      const response = await fetch('http://localhost:3001/api/history', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json'
-        },
-        credentials: 'include', // Important for sending cookies
-        body: JSON.stringify({
-          productName,
-          analysis: analysisText,
-          imageUrl: imageBase64,
-          healthScore
-        })
-      });
+      // Updated to use historyService
+      await historyService.saveHistory(
+        productName,
+        analysisText,
+        imageBase64,
+        healthScore
+      );
 
-      if (!response.ok) {
-        console.error('Failed to save history:', await response.text());
-      } else {
-        console.log('✅ Analysis saved to history');
-      }
+      console.log('✅ Analysis saved to history');
     } catch (error) {
       console.error('❌ Error saving to history:', error);
       // Don't throw - history save failure shouldn't break the analysis flow

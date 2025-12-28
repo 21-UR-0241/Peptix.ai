@@ -9,6 +9,8 @@ import {
   UserCircle,
 } from 'lucide-react';
 import BottomNavigation from '../components/BottomNavigation';
+import { authService } from '../services/auth.js'; // Add this
+import { historyService } from '../services/history.js'; // Add this
 
 function Results() {
   const navigate = useNavigate();
@@ -27,10 +29,8 @@ function Results() {
 
   const fetchUser = async () => {
     try {
-      const response = await fetch('http://localhost:3001/api/auth/me', {
-        credentials: 'include'
-      });
-      const data = await response.json();
+      // Updated to use authService
+      const data = await authService.getCurrentUser();
       if (data.user) {
         setUser(data.user);
       }
@@ -43,10 +43,8 @@ function Results() {
 
   const handleLogout = async () => {
     try {
-      await fetch('http://localhost:3001/api/auth/logout', {
-        method: 'POST',
-        credentials: 'include'
-      });
+      // Updated to use authService
+      await authService.logout();
       setUser(null);
       setShowDropdown(false);
       navigate('/');
@@ -142,6 +140,7 @@ function Results() {
   };
 
   // Save to history database with Cloudinary URL
+// Save to history database with Cloudinary URL
   const saveToHistory = async (result) => {
     try {
       // Check if already saved
@@ -166,31 +165,21 @@ function Results() {
       console.log('💾 Saving to history with Cloudinary URL...');
       console.log('📷 Cloudinary URL:', cloudinaryUrl);
 
-      const response = await fetch('/api/history', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json'
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          productName,
-          analysis: analysisText,
-          imageUrl: cloudinaryUrl, // Use Cloudinary URL instead of base64
-          healthScore
-        })
-      });
+      // Updated to use historyService
+      await historyService.saveHistory(
+        productName,
+        analysisText,
+        cloudinaryUrl,
+        healthScore
+      );
 
-      if (response.ok) {
-        console.log('✅ Analysis saved to history with Cloudinary URL');
-        sessionStorage.setItem('historySaved', 'true');
-      } else {
-        const errorData = await response.json();
-        console.error('❌ Failed to save history:', errorData);
-      }
+      console.log('✅ Analysis saved to history with Cloudinary URL');
+      sessionStorage.setItem('historySaved', 'true');
     } catch (error) {
       console.error('❌ Error saving to history:', error);
     }
   };
+  
 
   if (!analysisResult) {
     return (
