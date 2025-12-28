@@ -1,3 +1,5 @@
+
+
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -12,6 +14,7 @@ import AnimatedLogo from '../components/AnimatedLogo';
 import BottomNavigation from '../components/BottomNavigation';
 import analyzeImageWithAI from '../services/aiService';
 import { uploadImageToCloudinary } from '../services/cloudinaryService';
+import { authService } from '../services/auth.js'; // Add this import
 
 export default function PeptixHome() {
   const navigate = useNavigate();
@@ -55,10 +58,8 @@ export default function PeptixHome() {
 
   const fetchUser = async () => {
     try {
-      const response = await fetch('http://localhost:3001/api/auth/me', {
-        credentials: 'include'
-      });
-      const data = await response.json();
+      // Updated to use authService
+      const data = await authService.getCurrentUser();
       if (data.user) {
         setUser(data.user);
       }
@@ -71,10 +72,8 @@ export default function PeptixHome() {
 
   const handleLogout = async () => {
     try {
-      await fetch('http://localhost:3001/api/auth/logout', {
-        method: 'POST',
-        credentials: 'include'
-      });
+      // Updated to use authService
+      await authService.logout();
       setUser(null);
       setShowDropdown(false);
       navigate('/');
@@ -257,7 +256,7 @@ export default function PeptixHome() {
             width: '60px',
             height: '60px',
             border: '4px solid #2a2a2a',
-            borderTop: '4px solid ',
+            borderTop: '4px solid #9333ea',
             borderRadius: '50%',
             animation: 'spin 1s linear infinite',
           }}

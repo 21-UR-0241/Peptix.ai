@@ -4,6 +4,7 @@ import { User, LogOut, UserCircle } from 'lucide-react';
 import AnimatedLogo from '../components/AnimatedLogo';
 import BottomNavigation from '../components/BottomNavigation';
 import { Sparkles, Shield, AlertCircle, Cpu } from 'lucide-react';
+import { authService } from '../services/auth.js'; // Add this import
 
 function About() {
   const navigate = useNavigate();
@@ -18,10 +19,8 @@ function About() {
 
   const fetchUser = async () => {
     try {
-      const response = await fetch('http://localhost:3001/api/auth/me', {
-        credentials: 'include'
-      });
-      const data = await response.json();
+      // Updated to use authService
+      const data = await authService.getCurrentUser();
       if (data.user) {
         setUser(data.user);
       }
@@ -34,10 +33,8 @@ function About() {
 
   const handleLogout = async () => {
     try {
-      await fetch('http://localhost:3001/api/auth/logout', {
-        method: 'POST',
-        credentials: 'include'
-      });
+      // Updated to use authService
+      await authService.logout();
       setUser(null);
       setShowDropdown(false);
       navigate('/');
