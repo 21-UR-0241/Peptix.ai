@@ -1,4 +1,3 @@
-
 // server.js
 import express from 'express';
 import cors from 'cors';
@@ -158,8 +157,14 @@ app.post('/api/claude', async (req, res) => {
 });
 
 // Serve React app for all other routes (production only)
+// FIXED: Express 5 doesn't support app.get('*') anymore
 if (process.env.NODE_ENV === 'production') {
-  app.get('*', (req, res) => {
+  app.use((req, res, next) => {
+    // Skip API routes (they're already handled above)
+    if (req.path.startsWith('/api')) {
+      return next();
+    }
+    // Serve the React app for all other routes
     res.sendFile(path.join(__dirname, 'dist', 'index.html'));
   });
 }
