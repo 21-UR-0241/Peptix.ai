@@ -1,7 +1,9 @@
 // AI Service for comprehensive health image analysis
 // Uses Claude ONLY via proxy
 
-const CLAUDE_PROXY_URL = 'http://localhost:3001/api/claude';
+import { API_ENDPOINTS } from '../config/api.js'; // Add this import
+
+const CLAUDE_PROXY_URL = API_ENDPOINTS.CLAUDE; // Updated to use centralized config
 
 console.log('🔑 Using Claude API via proxy at:', CLAUDE_PROXY_URL);
 
@@ -19,7 +21,7 @@ export async function analyzeImageWithAI(imageFile) {
     
     // Check if proxy server is running
     if (error.message.includes('fetch')) {
-      throw new Error('Cannot connect to proxy server. Make sure to run: npm run server');
+      throw new Error('Cannot connect to API server. Please try again.');
     }
     
     throw new Error(`Analysis failed: ${error.message}`);
@@ -41,6 +43,7 @@ async function analyzeWithClaude(imageFile) {
       headers: {
         'Content-Type': 'application/json'
       },
+      credentials: 'include', // Add this for cookie support
       body: JSON.stringify({
         image: base64Image,
         prompt: prompt

@@ -1,3 +1,4 @@
+
 // server.js
 import express from 'express';
 import cors from 'cors';
@@ -17,18 +18,14 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 const isDevelopment = process.env.NODE_ENV !== 'production';
 
-// CORS Configuration - BEFORE any routes
 const corsOptions = {
   origin: function(origin, callback) {
     console.log('🔍 CORS check - Origin:', origin);
-    
-    // Allow requests with no origin (like mobile apps or curl)
     if (!origin) {
       console.log('✅ No origin - allowing');
       return callback(null, true);
     }
-    
-    // In development: allow all localhost origins
+  
     if (isDevelopment) {
       if (origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:')) {
         console.log('✅ Development - allowing localhost origin:', origin);
@@ -80,81 +77,8 @@ app.use('/api', (req, res, next) => {
   next();
 });
 
-// Mount authentication and other routes
+// Mount authentication and other routes (includes /api/claude)
 app.use('/api', routes);
-
-// Claude API proxy endpoint
-app.post('/api/claude', async (req, res) => {
-  try {
-    const { image, prompt, mimeType } = req.body;
-    const apiKey = process.env.ANTHROPIC_API_KEY;
-
-    if (!apiKey) {
-      return res.status(500).json({ error: 'Claude API key not configured' });
-    }
-    
-    if (!image || !prompt) {
-      return res.status(400).json({ error: 'Missing image or prompt' });
-    }
-
-    console.log('🤖 Proxying request to Claude...');
-    console.log('📦 Image size:', Math.round(image.length / 1024), 'KB');
-    console.log('🖼️ MIME type:', mimeType || 'image/jpeg');
-
-    const anthropicResp = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 4096,
-        temperature: 0.7,
-        messages: [
-          {
-            role: 'user',
-            content: [
-              {
-                type: 'image',
-                source: {
-                  type: 'base64',
-                  media_type: mimeType || 'image/jpeg',
-                  data: image,
-                },
-              },
-              { type: 'text', text: prompt },
-            ],
-          },
-        ],
-      }),
-    });
-
-    const text = await anthropicResp.text();
-    console.log('📡 Claude status:', anthropicResp.status);
-
-    if (!anthropicResp.ok) {
-      try {
-        return res.status(anthropicResp.status).json(JSON.parse(text));
-      } catch {
-        return res.status(anthropicResp.status).json({ error: text });
-      }
-    }
-
-    let json;
-    try {
-      json = JSON.parse(text);
-    } catch {
-      return res.status(500).json({ error: 'Invalid JSON from Anthropic', detail: text });
-    }
-
-    return res.json(json);
-  } catch (err) {
-    console.error('❌ Proxy error:', err);
-    res.status(500).json({ error: err.message || 'proxy error' });
-  }
-});
 
 // Serve React app for all other routes (production only)
 // FIXED: Express 5 doesn't support app.get('*') anymore
