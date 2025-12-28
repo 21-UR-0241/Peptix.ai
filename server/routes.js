@@ -1,5 +1,3 @@
-
-
 import { Router } from "express";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
@@ -83,12 +81,13 @@ function makeToken() {
   return crypto.randomBytes(32).toString("hex");
 }
 
+// ✅ UPDATED: Cookie options for cross-domain authentication
 function cookieOptions() {
   const isProd = process.env.NODE_ENV === "production";
   return {
     httpOnly: true,
-    sameSite: "lax",
-    secure: isProd,
+    sameSite: isProd ? "none" : "lax", // 'none' allows cross-domain cookies
+    secure: isProd, // Must be true in production for sameSite: 'none'
     path: "/",
   };
 }
@@ -242,9 +241,6 @@ router.post("/auth/login", async (req, res) => {
   }
 });
 
-
-// Add this route after the update-profile route
-
 // Change password
 router.put("/auth/change-password", async (req, res) => {
   try {
@@ -306,7 +302,6 @@ router.put("/auth/change-password", async (req, res) => {
     return res.status(500).json({ error: e?.message || "CHANGE_PASSWORD_FAILED" });
   }
 });
-
 
 // ============================================================================
 // GOOGLE OAUTH ROUTES
@@ -422,7 +417,6 @@ router.put("/auth/update-profile", async (req, res) => {
 // ============================================================================
 
 // Claude API proxy
-// Claude API proxy
 router.post("/claude", async (req, res) => {
   try {
     const { image, prompt } = req.body ?? {};
@@ -444,8 +438,8 @@ router.post("/claude", async (req, res) => {
         "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify({
-        model: "claude-sonnet-4-20250514", // ✅ Updated model
-        max_tokens: 4096, // Increased from 3000
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 4096,
         temperature: 0.7,
         messages: [
           {
@@ -580,9 +574,11 @@ router.delete("/history/:id", async (req, res) => {
   }
 });
 
+// ============================================================================
+// IMAGE UPLOAD ROUTES
+// ============================================================================
 
-
-// TEMPORARY: Simple upload route that just returns a data URL
+// Upload image (returns base64 for now, can be upgraded to Cloudinary later)
 router.post("/upload-image", async (req, res) => {
   try {
     const { image } = req.body;
@@ -594,9 +590,9 @@ router.post("/upload-image", async (req, res) => {
     console.log("📸 Upload route hit - returning base64 as URL");
 
     // For now, just return the base64 image as the URL
-    // We'll add Cloudinary later
+    // You can upgrade this to use Cloudinary later
     return res.json({
-      url: image, // Use the base64 directly
+      url: image,
       publicId: "temp-" + Date.now(),
       width: 1000,
       height: 1000
