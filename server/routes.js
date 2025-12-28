@@ -422,6 +422,7 @@ router.put("/auth/update-profile", async (req, res) => {
 // ============================================================================
 
 // Claude API proxy
+// Claude API proxy
 router.post("/claude", async (req, res) => {
   try {
     const { image, prompt } = req.body ?? {};
@@ -443,8 +444,8 @@ router.post("/claude", async (req, res) => {
         "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify({
-        model: "claude-3-5-sonnet-20240620",
-        max_tokens: 3000,
+        model: "claude-sonnet-4-20250514", // ✅ Updated model
+        max_tokens: 4096, // Increased from 3000
         temperature: 0.7,
         messages: [
           {
