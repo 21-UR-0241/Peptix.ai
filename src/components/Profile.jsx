@@ -782,13 +782,10 @@
 
 // export default Profile;
 
-
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import BottomNavigation from '../components/BottomNavigation';
 import { authService } from '../services/auth.js';
-import { Camera, X } from 'lucide-react';
 
 function Profile() {
   const navigate = useNavigate();
@@ -806,7 +803,6 @@ function Profile() {
   const [message, setMessage] = useState({ type: '', text: '' });
   const [passwordMessage, setPasswordMessage] = useState({ type: '', text: '' });
   const [uploadingImage, setUploadingImage] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
 
   useEffect(() => {
     fetchUser();
@@ -840,10 +836,6 @@ function Profile() {
     }
   };
 
-  const handleImageClick = () => {
-    fileInputRef.current?.click();
-  };
-
   const handleImageUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -862,12 +854,8 @@ function Profile() {
 
     setUploadingImage(true);
     setMessage({ type: '', text: '' });
-    setUploadProgress(0);
 
     try {
-      // Simulate progress
-      setUploadProgress(10);
-
       // Convert file to base64
       const base64 = await new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -875,8 +863,6 @@ function Profile() {
         reader.onerror = reject;
         reader.readAsDataURL(file);
       });
-
-      setUploadProgress(30);
 
       // Upload to Cloudinary via backend
       const uploadResponse = await fetch('/api/upload-profile-picture', {
@@ -886,27 +872,21 @@ function Profile() {
         body: JSON.stringify({ image: base64 })
       });
 
-      setUploadProgress(80);
-
       if (!uploadResponse.ok) {
         const errorData = await uploadResponse.json();
         throw new Error(errorData.error || 'Failed to upload image');
       }
 
       const uploadData = await uploadResponse.json();
-      
-      setUploadProgress(100);
 
-      // Update local user state
+      // Update user state with the response from backend
       setUser(uploadData.user);
       setMessage({ type: 'success', text: 'Profile picture updated successfully!' });
-
     } catch (error) {
       console.error('Error uploading image:', error);
       setMessage({ type: 'error', text: error.message || 'Failed to upload image' });
     } finally {
       setUploadingImage(false);
-      setUploadProgress(0);
       // Clear file input
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
@@ -915,12 +895,11 @@ function Profile() {
   };
 
   const handleRemoveProfilePicture = async () => {
-    if (!user.profilePicture?.publicId) return;
+    if (!user?.profilePicture) return;
 
     const confirmed = window.confirm('Are you sure you want to remove your profile picture?');
     if (!confirmed) return;
 
-    setUploadingImage(true);
     setMessage({ type: '', text: '' });
 
     try {
@@ -938,12 +917,9 @@ function Profile() {
       const data = await response.json();
       setUser(data.user);
       setMessage({ type: 'success', text: 'Profile picture removed successfully!' });
-
     } catch (error) {
       console.error('Error removing image:', error);
       setMessage({ type: 'error', text: error.message || 'Failed to remove profile picture' });
-    } finally {
-      setUploadingImage(false);
     }
   };
 
@@ -1000,31 +976,35 @@ function Profile() {
 
   if (loading) {
     return (
-      <div style={{
-        minHeight: '100vh',
-        background: '#0a0a0a',
-        color: '#ffffff',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '2rem',
-      }}>
-        <div style={{
-          width: '60px',
-          height: '60px',
-          border: '4px solid #2a2a2a',
-          borderTop: '4px solid #9333ea',
-          borderRadius: '50%',
-          animation: 'spin 1s linear infinite',
-        }} />
+      <div
+        style={{
+          minHeight: '100vh',
+          background: '#0a0a0a',
+          color: '#ffffff',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '2rem',
+        }}
+      >
+        <div
+          style={{
+            width: '60px',
+            height: '60px',
+            border: '4px solid #2a2a2a',
+            borderTop: '4px solid #9333ea ',
+            borderRadius: '50%',
+            animation: 'spin 1s linear infinite',
+          }}
+        />
         <style>{`
           @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
           }
         `}</style>
-        <div style={{ fontSize: '1.2rem', marginTop: '1rem' }}>Loading profile...</div>
+        <div style={{ fontSize: '1.2rem' }}>Loading profile...</div>
       </div>
     );
   }
@@ -1050,7 +1030,9 @@ function Profile() {
           padding: '2rem 1.5rem'
         }}>
           {/* Header */}
-          <div style={{ marginBottom: '2rem' }}>
+          <div style={{
+            marginBottom: '2rem'
+          }}>
             <h1 style={{
               fontSize: '2.5rem',
               fontWeight: '700',
@@ -1103,12 +1085,10 @@ function Profile() {
               alignItems: 'center',
               gap: '1.5rem'
             }}>
-              {/* Profile Picture Container */}
-              <div style={{ position: 'relative' }}>
-                {/* Avatar */}
-                <div style={{
-                  width: '100px',
-                  height: '100px',
+              <div 
+                style={{
+                  width: '80px',
+                  height: '80px',
                   borderRadius: '50%',
                   background: user.profilePicture?.url 
                     ? `url(${user.profilePicture.url}) center/cover`
@@ -1116,109 +1096,26 @@ function Profile() {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  fontSize: '2.5rem',
+                  fontSize: '2rem',
                   fontWeight: '700',
                   color: '#ffffff',
                   boxShadow: '0 4px 12px rgba(167, 139, 250, 0.4)',
-                  position: 'relative',
-                  overflow: 'hidden'
-                }}>
-                  {!user.profilePicture?.url && (
-                    user.name?.charAt(0).toUpperCase() || 'U'
-                  )}
-                  
-                  {/* Upload Overlay */}
-                  {uploadingImage && (
-                    <div style={{
-                      position: 'absolute',
-                      inset: 0,
-                      background: 'rgba(0, 0, 0, 0.7)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      flexDirection: 'column',
-                      gap: '0.5rem'
-                    }}>
-                      <div style={{
-                        width: '40px',
-                        height: '40px',
-                        border: '3px solid rgba(255, 255, 255, 0.3)',
-                        borderTop: '3px solid #ffffff',
-                        borderRadius: '50%',
-                        animation: 'spin 1s linear infinite'
-                      }} />
-                      {uploadProgress > 0 && (
-                        <span style={{ fontSize: '0.75rem', color: '#ffffff' }}>
-                          {Math.round(uploadProgress)}%
-                        </span>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                {/* Camera Button */}
-                <button
-                  onClick={handleImageClick}
-                  disabled={uploadingImage}
-                  style={{
-                    position: 'absolute',
-                    bottom: '0',
-                    right: '0',
-                    width: '36px',
-                    height: '36px',
-                    borderRadius: '50%',
-                    background: 'linear-gradient(135deg, #9333ea 0%, #ec4899 100%)',
-                    border: '3px solid #1a1a1a',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: uploadingImage ? 'not-allowed' : 'pointer',
-                    transition: 'transform 0.2s ease',
-                    opacity: uploadingImage ? 0.5 : 1
-                  }}
-                  onMouseEnter={(e) => !uploadingImage && (e.target.style.transform = 'scale(1.1)')}
-                  onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
-                >
-                  <Camera size={18} color="#ffffff" />
-                </button>
-
-                {/* Remove Picture Button */}
-                {user.profilePicture?.url && !uploadingImage && (
-                  <button
-                    onClick={handleRemoveProfilePicture}
-                    style={{
-                      position: 'absolute',
-                      top: '-8px',
-                      right: '-8px',
-                      width: '28px',
-                      height: '28px',
-                      borderRadius: '50%',
-                      background: '#ef4444',
-                      border: '2px solid #1a1a1a',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      cursor: 'pointer',
-                      transition: 'transform 0.2s ease'
-                    }}
-                    onMouseEnter={(e) => e.target.style.transform = 'scale(1.1)'}
-                    onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
-                  >
-                    <X size={16} color="#ffffff" />
-                  </button>
-                )}
-
-                {/* Hidden File Input */}
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  style={{ display: 'none' }}
-                />
+                  cursor: 'pointer'
+                }}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                {!user.profilePicture?.url && (user.name?.charAt(0).toUpperCase() || 'U')}
               </div>
+              
+              {/* Hidden file input */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                style={{ display: 'none' }}
+              />
 
-              {/* User Info */}
               <div>
                 <h2 style={{
                   fontSize: '1.5rem',
@@ -1232,38 +1129,21 @@ function Profile() {
                 <p style={{
                   color: '#9ca3af',
                   fontSize: '0.95rem',
-                  margin: '0.25rem 0 0.75rem 0'
+                  margin: '0.25rem 0 0 0'
                 }}>
                   {user.email}
                 </p>
-                <button
-                  onClick={handleImageClick}
-                  disabled={uploadingImage}
-                  style={{
-                    padding: '0.5rem 1rem',
-                    background: 'rgba(167, 139, 250, 0.1)',
-                    border: '1px solid #9333ea',
-                    borderRadius: '6px',
-                    color: '#9333ea',
+
+                {uploadingImage && (
+                  <p style={{
+                    color: '#a78bfa',
                     fontSize: '0.85rem',
-                    fontWeight: '600',
-                    cursor: uploadingImage ? 'not-allowed' : 'pointer',
-                    transition: 'all 0.2s ease',
-                    opacity: uploadingImage ? 0.5 : 1
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!uploadingImage) {
-                      e.target.style.background = 'rgba(167, 139, 250, 0.2)';
-                      e.target.style.color = '#ffffff';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.background = 'rgba(167, 139, 250, 0.1)';
-                    e.target.style.color = '#9333ea';
-                  }}
-                >
-                  {uploadingImage ? 'Uploading...' : (user.profilePicture?.url ? 'Change Photo' : 'Upload Photo')}
-                </button>
+                    marginTop: '0.5rem',
+                    margin: '0.5rem 0 0 0'
+                  }}>
+                    Uploading...
+                  </p>
+                )}
               </div>
             </div>
 
@@ -1472,39 +1352,314 @@ function Profile() {
             </div>
           </div>
 
-          {/* Change Password Card - Keep as is */}
-          {/* ... rest of your password change card code ... */}
-
-          {/* Account Info - Keep as is */}
-          {/* ... rest of your account info code ... */}
-
-          {/* Logout Button */}
-          <div style={{ display: 'flex', justifyContent: 'center', marginTop: '1.5rem' }}>
-            <button
-              onClick={handleLogout}
-              style={{
-                width: '200px',
-                padding: '1rem 1.5rem',
-                fontSize: '1rem',
-                background: 'rgba(167, 139, 250, 0.1)',
-                border: '1px solid #9333ea',
-                borderRadius: '8px',
-                color: '#9333ea',
+          {/* Change Password Card */}
+          <div style={{
+            marginTop: '1.5rem',
+            background: '#1a1a1a',
+            border: '1px solid #2a2a2a',
+            borderRadius: '12px',
+            overflow: 'hidden'
+          }}>
+            <div style={{
+              padding: '2rem',
+              borderBottom: changingPassword ? '1px solid #2a2a2a' : 'none'
+            }}>
+              <h3 style={{
+                color: '#ffffff',
+                fontSize: '1.1rem',
                 fontWeight: '600',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'rgba(167, 139, 250, 0.2)';
-                e.currentTarget.style.color = '#ffffff';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'rgba(167, 139, 250, 0.1)';
-                e.currentTarget.style.color = '#9333ea';
-              }}
-            >
-              Logout
-            </button>
+                marginBottom: '0.5rem',
+                margin: 0
+              }}>
+                Password
+              </h3>
+              <p style={{
+                color: '#9ca3af',
+                fontSize: '0.9rem',
+                marginBottom: changingPassword ? '0' : '1.5rem',
+                margin: changingPassword ? '0.5rem 0 0 0' : '0.5rem 0 1.5rem 0'
+              }}>
+                {changingPassword 
+                  ? 'Enter your current password and choose a new one'
+                  : 'Keep your account secure with a strong password'
+                }
+              </p>
+
+              {!changingPassword && (
+                <button
+                  onClick={() => {
+                    setChangingPassword(true);
+                    setPasswordMessage({ type: '', text: '' });
+                  }}
+                  style={{
+                    padding: '0.75rem 1.5rem',
+                    background: 'rgba(167, 139, 250, 0.1)',
+                    border: '1px solid #9333ea',
+                    borderRadius: '8px',
+                    color: '#9333ea',
+                    fontSize: '0.9rem',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.background = 'rgba(167, 139, 250, 0.2)';
+                    e.target.style.color = '#ffffff';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.background = 'rgba(167, 139, 250, 0.1)';
+                    e.target.style.color = '#9333ea';
+                  }}
+                >
+                  Change Password
+                </button>
+              )}
+            </div>
+
+            {changingPassword && (
+              <div style={{ padding: '2rem', paddingTop: '1.5rem' }}>
+                {passwordMessage.text && (
+                  <div style={{
+                    padding: '1rem',
+                    borderRadius: '8px',
+                    marginBottom: '1.5rem',
+                    background: passwordMessage.type === 'success' 
+                      ? 'rgba(34, 197, 94, 0.1)' 
+                      : 'rgba(239, 68, 68, 0.1)',
+                    border: `1px solid ${passwordMessage.type === 'success' ? '#22c55e' : '#ef4444'}`,
+                    color: passwordMessage.type === 'success' ? '#22c55e' : '#ef4444'
+                  }}>
+                    {passwordMessage.text}
+                  </div>
+                )}
+
+                <form onSubmit={handlePasswordChange}>
+                  <div style={{ marginBottom: '1.5rem' }}>
+                    <label style={{
+                      display: 'block',
+                      color: '#ffffff',
+                      fontSize: '0.9rem',
+                      fontWeight: '600',
+                      marginBottom: '0.5rem'
+                    }}>
+                      Current Password
+                    </label>
+                    <input
+                      type="password"
+                      value={passwordData.currentPassword}
+                      onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
+                      style={{
+                        width: '100%',
+                        padding: '0.75rem 1rem',
+                        background: '#0a0a0a',
+                        border: '1px solid #2a2a2a',
+                        borderRadius: '8px',
+                        color: '#ffffff',
+                        fontSize: '1rem',
+                        outline: 'none',
+                        transition: 'border-color 0.2s ease',
+                        boxSizing: 'border-box'
+                      }}
+                      onFocus={(e) => e.target.style.borderColor = '#9333ea'}
+                      onBlur={(e) => e.target.style.borderColor = '#2a2a2a'}
+                      required
+                    />
+                  </div>
+
+                  <div style={{ marginBottom: '1.5rem' }}>
+                    <label style={{
+                      display: 'block',
+                      color: '#ffffff',
+                      fontSize: '0.9rem',
+                      fontWeight: '600',
+                      marginBottom: '0.5rem'
+                    }}>
+                      New Password
+                    </label>
+                    <input
+                      type="password"
+                      value={passwordData.newPassword}
+                      onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
+                      style={{
+                        width: '100%',
+                        padding: '0.75rem 1rem',
+                        background: '#0a0a0a',
+                        border: '1px solid #2a2a2a',
+                        borderRadius: '8px',
+                        color: '#ffffff',
+                        fontSize: '1rem',
+                        outline: 'none',
+                        transition: 'border-color 0.2s ease',
+                        boxSizing: 'border-box'
+                      }}
+                      onFocus={(e) => e.target.style.borderColor = '#9333ea'}
+                      onBlur={(e) => e.target.style.borderColor = '#2a2a2a'}
+                      required
+                      minLength={6}
+                    />
+                  </div>
+
+                  <div style={{ marginBottom: '1.5rem' }}>
+                    <label style={{
+                      display: 'block',
+                      color: '#ffffff',
+                      fontSize: '0.9rem',
+                      fontWeight: '600',
+                      marginBottom: '0.5rem'
+                    }}>
+                      Confirm New Password
+                    </label>
+                    <input
+                      type="password"
+                      value={passwordData.confirmPassword}
+                      onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
+                      style={{
+                        width: '100%',
+                        padding: '0.75rem 1rem',
+                        background: '#0a0a0a',
+                        border: '1px solid #2a2a2a',
+                        borderRadius: '8px',
+                        color: '#ffffff',
+                        fontSize: '1rem',
+                        outline: 'none',
+                        transition: 'border-color 0.2s ease',
+                        boxSizing: 'border-box'
+                      }}
+                      onFocus={(e) => e.target.style.borderColor = '#9333ea'}
+                      onBlur={(e) => e.target.style.borderColor = '#2a2a2a'}
+                      required
+                    />
+                  </div>
+
+                  <div style={{
+                    display: 'flex',
+                    gap: '1rem',
+                    justifyContent: 'flex-end'
+                  }}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setChangingPassword(false);
+                        setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+                        setPasswordMessage({ type: '', text: '' });
+                      }}
+                      style={{
+                        padding: '0.75rem 1.5rem',
+                        background: 'transparent',
+                        border: '1px solid #2a2a2a',
+                        borderRadius: '8px',
+                        color: '#9ca3af',
+                        fontSize: '0.9rem',
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.target.style.background = 'rgba(167, 139, 250, 0.1)';
+                        e.target.style.color = '#ffffff';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.target.style.background = 'transparent';
+                        e.target.style.color = '#9ca3af';
+                      }}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      style={{
+                        padding: '0.75rem 1.5rem',
+                        background: 'linear-gradient(135deg, #9333ea 0%, #ec4899 100%)',
+                        border: 'none',
+                        borderRadius: '8px',
+                        color: '#ffffff',
+                        fontSize: '0.9rem',
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                        transition: 'transform 0.2s ease, box-shadow 0.2s ease'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.target.style.transform = 'translateY(-2px)';
+                        e.target.style.boxShadow = '0 4px 12px rgba(167, 139, 250, 0.4)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.target.style.transform = 'translateY(0)';
+                        e.target.style.boxShadow = 'none';
+                      }}
+                    >
+                      Update Password
+                    </button>
+                  </div>
+                </form>
+              </div>
+            )}
+          </div>
+
+          {/* Account Info */}
+          <div style={{
+            marginTop: '1.5rem',
+            padding: '1.5rem',
+            background: '#1a1a1a',
+            border: '1px solid #2a2a2a',
+            borderRadius: '12px'
+          }}>
+            <h3 style={{
+              color: '#ffffff',
+              fontSize: '1.1rem',
+              fontWeight: '600',
+              marginBottom: '1rem',
+              margin: '0 0 1rem 0'
+            }}>
+              Account Information
+            </h3>
+            <div style={{
+              display: 'grid',
+              gap: '0.75rem',
+              color: '#9ca3af',
+              fontSize: '0.9rem'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span>Account ID:</span>
+                <span style={{ color: '#ffffff', fontFamily: 'monospace' }}>{user.id}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span>Member since:</span>
+                <span style={{ color: '#ffffff' }}>
+                  {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                </span>
+              </div>
+            </div>     
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'center' }}>
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
+              <button
+                onClick={handleLogout}
+                style={{
+                  width: '200px',
+                  padding: '1rem 1.5rem',
+                  fontSize: '1rem',
+                  background: 'rgba(167, 139, 250, 0.1)',
+                  border: '1px solid #9333ea',
+                  borderRadius: '8px',
+                  color: '#9333ea',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  marginTop: '25px',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'rgba(167, 139, 250, 0.2)';
+                  e.currentTarget.style.color = '#ffffff';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'rgba(167, 139, 250, 0.1)';
+                  e.currentTarget.style.color = '#9333ea';
+                }}
+              >
+                Logout
+              </button>
+            </div>
           </div>
         </div>
       </main>
