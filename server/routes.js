@@ -632,37 +632,8 @@ router.delete("/delete-image/:publicId", async (req, res) => {
   }
 });
 
-// Update profile picture
-router.put("/auth/update-profile-picture", async (req, res) => {
-  try {
-    const user = await getUserFromRequest(req);
-    if (!user) return res.status(401).json({ error: "UNAUTHORIZED" });
 
-    const { profilePicture } = req.body;
-
-    console.log("🖼️ Updating profile picture for user:", user.id);
-
-    const updated = await db
-      .update(users)
-      .set({ profilePicture: profilePicture || null })
-      .where(eq(users.id, user.id))
-      .returning({ 
-        id: users.id, 
-        email: users.email, 
-        name: users.name, 
-        profilePicture: users.profilePicture 
-      });
-
-    console.log("✅ Profile picture updated");
-
-    return res.json({ user: updated[0] });
-  } catch (e) {
-    console.error("❌ Update profile picture error:", e);
-    return res.status(500).json({ error: e?.message || "UPDATE_PICTURE_FAILED" });
-  }
-});
-
-// Upload profile picture to Cloudinary
+// Upload profile picture to Cloudinary AND update database
 router.post("/upload-profile-picture", async (req, res) => {
   try {
     const user = await getUserFromRequest(req);
@@ -676,9 +647,19 @@ router.post("/upload-profile-picture", async (req, res) => {
 
     console.log("📸 Uploading profile picture to Cloudinary for user:", user.id);
 
+    // Delete old profile picture if exists
+    if (user.profilePicture?.publicId) {
+      try {
+        console.log("🗑️ Deleting old profile picture:", user.profilePicture.publicId);
+        await cloudinary.uploader.destroy(user.profilePicture.publicId);
+      } catch (err) {
+        console.error("⚠️ Failed to delete old image:", err);
+      }
+    }
+
     // Upload to Cloudinary
     const result = await cloudinary.uploader.upload(image, {
-      folder: 'profile-pictures',
+      folder: 'peptix/profile-pictures',
       transformation: [
         { width: 500, height: 500, crop: 'fill', gravity: 'face' },
         { quality: 'auto' }
@@ -688,11 +669,32 @@ router.post("/upload-profile-picture", async (req, res) => {
 
     console.log("✅ Image uploaded to Cloudinary:", result.secure_url);
 
+    // Create profile picture object
+    const profilePicture = {
+      url: result.secure_url,
+      publicId: result.public_id
+    };
+
+    // Update database
+    const updated = await db
+      .update(users)
+      .set({ profilePicture })
+      .where(eq(users.id, user.id))
+      .returning({ 
+        id: users.id, 
+        email: users.email, 
+        name: users.name, 
+        profilePicture: users.profilePicture 
+      });
+
+    console.log("✅ Profile picture updated in database");
+
     return res.json({
       url: result.secure_url,
       publicId: result.public_id,
       width: result.width,
-      height: result.height
+      height: result.height,
+      user: updated[0]
     });
   } catch (error) {
     console.error("❌ Cloudinary upload error:", error);
@@ -701,6 +703,54 @@ router.post("/upload-profile-picture", async (req, res) => {
     });
   }
 });
+
+// Remove profile picture from Cloudinary AND database
+router.delete("/remove-profile-picture", async (req, res) => {
+  try {
+    const user = await getUserFromRequest(req);
+    if (!user) return res.status(401).json({ error: "UNAUTHORIZED" });
+
+    if (!user.profilePicture?.publicId) {
+      return res.status(400).json({ error: "NO_PROFILE_PICTURE" });
+    }
+
+    console.log("🗑️ Removing profile picture for user:", user.id);
+
+    // Delete from Cloudinary
+    try {
+      await cloudinary.uploader.destroy(user.profilePicture.publicId);
+      console.log("✅ Image deleted from Cloudinary");
+    } catch (err) {
+      console.error("⚠️ Failed to delete from Cloudinary:", err);
+    }
+
+    // Update database
+    const updated = await db
+      .update(users)
+      .set({ profilePicture: null })
+      .where(eq(users.id, user.id))
+      .returning({ 
+        id: users.id, 
+        email: users.email, 
+        name: users.name,
+        profilePicture: users.profilePicture
+      });
+
+    console.log("✅ Profile picture removed from database");
+
+    return res.json({ 
+      success: true,
+      user: updated[0]
+    });
+
+  } catch (error) {
+    console.error("❌ Remove profile picture error:", error);
+    return res.status(500).json({ 
+      error: error?.message || "REMOVE_FAILED" 
+    });
+  }
+});
+
 // ============================================================================
 // EXPORT
 // ============================================================================

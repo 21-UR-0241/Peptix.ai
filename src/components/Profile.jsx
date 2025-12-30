@@ -873,7 +873,12 @@ function Profile() {
       });
 
       if (!uploadResponse.ok) {
-        const errorData = await uploadResponse.json();
+        let errorData;
+        try {
+          errorData = await uploadResponse.json();
+        } catch {
+          throw new Error(`Upload failed with status ${uploadResponse.status}`);
+        }
         throw new Error(errorData.error || 'Failed to upload image');
       }
 
@@ -910,7 +915,12 @@ function Profile() {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
+        let errorData;
+        try {
+          errorData = await response.json();
+        } catch {
+          throw new Error(`Remove failed with status ${response.status}`);
+        }
         throw new Error(errorData.error || 'Failed to remove profile picture');
       }
 
@@ -1085,26 +1095,117 @@ function Profile() {
               alignItems: 'center',
               gap: '1.5rem'
             }}>
-              <div 
-                style={{
-                  width: '80px',
-                  height: '80px',
-                  borderRadius: '50%',
-                  background: user.profilePicture?.url 
-                    ? `url(${user.profilePicture.url}) center/cover`
-                    : 'linear-gradient(135deg, #a78bfa 0%, #ec4899 100%)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '2rem',
-                  fontWeight: '700',
-                  color: '#ffffff',
-                  boxShadow: '0 4px 12px rgba(167, 139, 250, 0.4)',
-                  cursor: 'pointer'
-                }}
-                onClick={() => fileInputRef.current?.click()}
-              >
-                {!user.profilePicture?.url && (user.name?.charAt(0).toUpperCase() || 'U')}
+              {/* Profile Picture with Camera Icon */}
+              <div style={{ position: 'relative' }}>
+                <div 
+                  style={{
+                    width: '80px',
+                    height: '80px',
+                    borderRadius: '50%',
+                    background: user.profilePicture?.url 
+                      ? `url(${user.profilePicture.url}) center/cover`
+                      : 'linear-gradient(135deg, #a78bfa 0%, #ec4899 100%)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '2rem',
+                    fontWeight: '700',
+                    color: '#ffffff',
+                    boxShadow: '0 4px 12px rgba(167, 139, 250, 0.4)',
+                    cursor: 'pointer',
+                    position: 'relative',
+                    overflow: 'hidden'
+                  }}
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  {!user.profilePicture?.url && (user.name?.charAt(0).toUpperCase() || 'U')}
+                  
+                  {/* Camera Icon Overlay */}
+                  <div style={{
+                    position: 'absolute',
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    background: 'rgba(0, 0, 0, 0.6)',
+                    padding: '0.5rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    opacity: 0,
+                    transition: 'opacity 0.2s ease'
+                  }}
+                  onMouseOver={(e) => e.currentTarget.style.opacity = '1'}
+                  onMouseOut={(e) => e.currentTarget.style.opacity = '0'}
+                  >
+                    <svg 
+                      width="20" 
+                      height="20" 
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      stroke="white" 
+                      strokeWidth="2" 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round"
+                    >
+                      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                      <circle cx="12" cy="13" r="4"/>
+                    </svg>
+                  </div>
+
+                  {/* Loading Overlay */}
+                  {uploadingImage && (
+                    <div style={{
+                      position: 'absolute',
+                      inset: 0,
+                      background: 'rgba(0, 0, 0, 0.7)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}>
+                      <div style={{
+                        width: '30px',
+                        height: '30px',
+                        border: '3px solid rgba(255, 255, 255, 0.3)',
+                        borderTop: '3px solid #ffffff',
+                        borderRadius: '50%',
+                        animation: 'spin 1s linear infinite'
+                      }} />
+                    </div>
+                  )}
+                </div>
+
+                {/* Remove Button (X) */}
+                {user.profilePicture?.url && !uploadingImage && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleRemoveProfilePicture();
+                    }}
+                    style={{
+                      position: 'absolute',
+                      top: '-5px',
+                      right: '-5px',
+                      width: '24px',
+                      height: '24px',
+                      borderRadius: '50%',
+                      background: '#ef4444',
+                      border: '2px solid #1a1a1a',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      transition: 'transform 0.2s ease',
+                      padding: 0
+                    }}
+                    onMouseEnter={(e) => e.target.style.transform = 'scale(1.1)'}
+                    onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3">
+                      <line x1="18" y1="6" x2="6" y2="18"/>
+                      <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                  </button>
+                )}
               </div>
               
               {/* Hidden file input */}
@@ -1147,6 +1248,7 @@ function Profile() {
               </div>
             </div>
 
+            {/* Rest of your existing code for Form Section, Password, etc. remains the same */}
             {/* Form Section */}
             <div style={{ padding: '2rem' }}>
               {editing ? (
@@ -1351,6 +1453,9 @@ function Profile() {
               )}
             </div>
           </div>
+
+          {/* Keep all your existing Password Card, Account Info, and Logout button code */}
+          {/* ... rest of your code ... */}
 
           {/* Change Password Card */}
           <div style={{
