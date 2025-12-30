@@ -83,7 +83,7 @@ function Analyze() {
       // Create a readable analysis text
       const analysisText = formatAnalysisForHistory(analysisResult);
 
-      const response = await fetch('http://localhost:3001/api/history', {
+      const response = await fetch('/api/history', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json'
