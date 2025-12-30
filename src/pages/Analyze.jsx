@@ -74,8 +74,7 @@ function Analyze() {
     return Math.max(0, Math.min(100, score));
   };
 
-  // 🔥 NEW: Function to save analysis to history
-// 🔥 NEW: Function to save analysis to history
+    // 🔥 NEW: Function to save analysis to history
   const saveToHistory = async (analysisResult, imageBase64) => {
     try {
       const productName = extractProductName(analysisResult);
@@ -84,20 +83,54 @@ function Analyze() {
       // Create a readable analysis text
       const analysisText = formatAnalysisForHistory(analysisResult);
 
-      // Updated to use historyService
-      await historyService.saveHistory(
-        productName,
-        analysisText,
-        imageBase64,
-        healthScore
-      );
+      const response = await fetch('http://localhost:3001/api/history', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include', // Important for sending cookies
+        body: JSON.stringify({
+          productName,
+          analysis: analysisText,
+          imageUrl: imageBase64,
+          healthScore
+        })
+      });
 
-      console.log('✅ Analysis saved to history');
+      if (!response.ok) {
+        console.error('Failed to save history:', await response.text());
+      } else {
+        console.log('✅ Analysis saved to history');
+      }
     } catch (error) {
       console.error('❌ Error saving to history:', error);
       // Don't throw - history save failure shouldn't break the analysis flow
     }
   };
+
+// // 🔥 NEW: Function to save analysis to history
+//   const saveToHistory = async (analysisResult, imageBase64) => {
+//     try {
+//       const productName = extractProductName(analysisResult);
+//       const healthScore = calculateHealthScore(analysisResult);
+      
+//       // Create a readable analysis text
+//       const analysisText = formatAnalysisForHistory(analysisResult);
+
+//       // Updated to use historyService
+//       await historyService.saveHistory(
+//         productName,
+//         analysisText,
+//         imageBase64,
+//         healthScore
+//       );
+
+//       console.log('✅ Analysis saved to history');
+//     } catch (error) {
+//       console.error('❌ Error saving to history:', error);
+//       // Don't throw - history save failure shouldn't break the analysis flow
+//     }
+//   };
 
   // 🔥 NEW: Format analysis result into readable text
   const formatAnalysisForHistory = (result) => {

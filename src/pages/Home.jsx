@@ -807,47 +807,6 @@ export default function PeptixHome() {
                   gap: '0.5rem',
                 }}
               >
-                <button
-                  onClick={startCamera}
-                  disabled={isCameraActive}
-                  style={{
-                    background: isCameraActive ? '#4b5563' : '#9333ea',
-                    color: 'white',
-                    padding: `${BTN_PAD_Y} 0.9rem`,
-                    borderRadius: 8,
-                    fontSize: BTN_FONT,
-                    fontWeight: 600,
-                    border: 'none',
-                    cursor: isCameraActive ? 'not-allowed' : 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '0.45rem',
-                  }}
-                >
-                  <Camera size={18} />
-                  Camera
-                </button>
-                <button
-                  onClick={handleUploadClick}
-                  style={{
-                    background: '#9333ea',
-                    color: 'white',
-                    padding: `${BTN_PAD_Y} 0.9rem`,
-                    borderRadius: 8,
-                    fontSize: BTN_FONT,
-                    fontWeight: 600,
-                    border: 'none',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '0.45rem',
-                  }}
-                >
-                  <Upload size={18} />
-                  Upload
-                </button>
               </div>
               <button
                 onClick={handleStartAnalysis}
@@ -858,7 +817,7 @@ export default function PeptixHome() {
                   justifyContent: 'center',
                   width: '100%',
                   padding: '0.78rem 1rem',
-                  borderRadius: 8,
+                  borderRadius: 10,
                   fontWeight: 600,
                   fontSize: '0.95rem',
                   textDecoration: 'none',
