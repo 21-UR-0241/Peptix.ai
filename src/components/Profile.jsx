@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import BottomNavigation from '../components/BottomNavigation';
 import { authService } from '../services/auth.js'; // Add this import
+import { AlignCenter } from 'lucide-react';
 
 function Profile() {
   const navigate = useNavigate();
@@ -21,6 +22,20 @@ function Profile() {
   useEffect(() => {
     fetchUser();
   }, []);
+
+    const handleLogout = async () => {
+  try {
+    await fetch('/api/auth/logout', {  // or your full URL
+      method: 'POST',
+      credentials: 'include',
+    });
+    setUser(null);
+    // remove setShowDropdown(false); // it isn't defined in this component
+    navigate('/login'); // or '/' if you prefer
+  } catch (error) {
+    console.error('Logout failed:', error);
+  }
+};
 
   const fetchUser = async () => {
     try {
@@ -95,6 +110,7 @@ function Profile() {
     }
   };
 
+  
   if (loading) {
     return (
       <div
@@ -722,8 +738,39 @@ function Profile() {
                   {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
                 </span>
               </div>
-            </div>
+            </div>     
           </div>
+
+          <div style={{ display: 'flex', justifyContent: 'center' }}>
+              <div style={{ display: 'flex', justifyContent: 'center' }}>
+                  <button
+                    onClick={handleLogout}
+                    style={{
+                      width: '200px',          // adjust width
+                      padding: '1rem 1.5rem',    // adjust height/width via padding
+                      fontSize: '1rem',        // adjust text size
+                      background: 'rgba(167, 139, 250, 0.1)',
+                      border: '1px solid #9333ea',
+                      borderRadius: '8px',
+                      color: '#9333ea',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      marginTop: '25px',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = 'rgba(167, 139, 250, 0.2)';
+                      e.currentTarget.style.color = '#ffffff';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'rgba(167, 139, 250, 0.1)';
+                      e.currentTarget.style.color = '#9333ea';
+                    }}
+                  >
+                Logout
+              </button>
+          </div>
+        </div>
         </div>
       </main>
 
