@@ -11,7 +11,7 @@ import {
 import CameraCapture from '../components/CameraCapture';
 import ImageUpload from '../components/ImageUpload';
 import analyzeImageWithAI from '../services/aiService';
-import { historyService } from '../services/history.js'; // Add this
+import { historyService } from '../services/history.js';
 
 function Analyze() {
   const navigate = useNavigate();
@@ -50,9 +50,7 @@ function Analyze() {
     setIsAnalyzing(false);
   };
 
-  // 🔥 NEW: Helper function to extract product name from analysis
   const extractProductName = (result) => {
-    // Try to extract from mainIssues or peptides
     if (result?.analysis?.mainIssues?.length > 0) {
       return result.analysis.mainIssues[0].title || 'Health Analysis';
     }
@@ -62,25 +60,17 @@ function Analyze() {
     return 'Health Analysis';
   };
 
-  // 🔥 NEW: Helper function to calculate a health score
   const calculateHealthScore = (result) => {
     const issuesCount = result?.analysis?.mainIssues?.length || 0;
     const achievedCount = result?.analysis?.alreadyAchieved?.length || 0;
-    
-    // Simple scoring: start at 70, subtract 10 per issue, add 5 per achievement
     let score = 70 - (issuesCount * 10) + (achievedCount * 5);
-    
-    // Keep score between 0-100
     return Math.max(0, Math.min(100, score));
   };
 
-    // 🔥 NEW: Function to save analysis to history
   const saveToHistory = async (analysisResult, imageBase64) => {
     try {
       const productName = extractProductName(analysisResult);
       const healthScore = calculateHealthScore(analysisResult);
-      
-      // Create a readable analysis text
       const analysisText = formatAnalysisForHistory(analysisResult);
 
       const response = await fetch('/api/history', {
@@ -88,7 +78,7 @@ function Analyze() {
         headers: { 
           'Content-Type': 'application/json'
         },
-        credentials: 'include', // Important for sending cookies
+        credentials: 'include',
         body: JSON.stringify({
           productName,
           analysis: analysisText,
@@ -104,39 +94,11 @@ function Analyze() {
       }
     } catch (error) {
       console.error('❌ Error saving to history:', error);
-      // Don't throw - history save failure shouldn't break the analysis flow
     }
   };
 
-// // 🔥 NEW: Function to save analysis to history
-//   const saveToHistory = async (analysisResult, imageBase64) => {
-//     try {
-//       const productName = extractProductName(analysisResult);
-//       const healthScore = calculateHealthScore(analysisResult);
-      
-//       // Create a readable analysis text
-//       const analysisText = formatAnalysisForHistory(analysisResult);
-
-//       // Updated to use historyService
-//       await historyService.saveHistory(
-//         productName,
-//         analysisText,
-//         imageBase64,
-//         healthScore
-//       );
-
-//       console.log('✅ Analysis saved to history');
-//     } catch (error) {
-//       console.error('❌ Error saving to history:', error);
-//       // Don't throw - history save failure shouldn't break the analysis flow
-//     }
-//   };
-
-  // 🔥 NEW: Format analysis result into readable text
   const formatAnalysisForHistory = (result) => {
     let text = '';
-    
-    // Add main issues
     if (result?.analysis?.mainIssues?.length > 0) {
       text += '🔴 Problems Found:\n';
       result.analysis.mainIssues.forEach((issue, idx) => {
@@ -145,7 +107,6 @@ function Analyze() {
       text += '\n';
     }
     
-    // Add achievements
     if (result?.analysis?.alreadyAchieved?.length > 0) {
       text += '✅ Already Achieved:\n';
       result.analysis.alreadyAchieved.forEach((achievement, idx) => {
@@ -154,11 +115,8 @@ function Analyze() {
       text += '\n';
     }
     
-    // Add recommendations
     if (result?.peptides?.length > 0) {
       text += '💊 Recommendations:\n';
-      
-      // Group by category
       const grouped = result.peptides.reduce((acc, peptide) => {
         const category = peptide.category || 'Other';
         if (!acc[category]) acc[category] = [];
@@ -186,33 +144,23 @@ function Analyze() {
     setError(null);
 
     try {
-      // Convert image to base64
       const reader = new FileReader();
       const imageBase64Promise = new Promise((resolve) => {
         reader.onloadend = () => resolve(reader.result);
         reader.readAsDataURL(imageFile);
       });
 
-      // Wait for image conversion
       const imageBase64 = await imageBase64Promise;
-      
-      // Store in sessionStorage for display
       sessionStorage.setItem('uploadedImage', imageBase64);
-
-      // Analyze the image
       const result = await analyzeImageWithAI(imageFile);
 
       if (!result || !Array.isArray(result.peptides) || result.peptides.length === 0) {
         throw new Error('No valid recommendations received from AI');
       }
 
-      // Store analysis result in sessionStorage
       sessionStorage.setItem('analysisResult', JSON.stringify(result));
-
-      // 🔥 SAVE TO HISTORY DATABASE
       await saveToHistory(result, imageBase64);
 
-      // Navigate to results page
       navigate('/results');
     } catch (err) {
       console.error('Error analyzing image:', err);

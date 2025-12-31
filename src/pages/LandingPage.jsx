@@ -305,7 +305,6 @@ export function LandingPage() {
       <header style={styles.nav}>
         <div style={styles.container}>
           <div style={styles.navInner}>
-            {/* Brand (copied from Header.jsx to match exactly) */}
             <Link
               to="/"
               style={{

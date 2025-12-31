@@ -1,15 +1,13 @@
 
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { authService } from "../services/auth.js"; // Add this import
+import { authService } from "../services/auth.js";
 
 export default function Signup() {
   const navigate = useNavigate();
-
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -84,8 +82,6 @@ export default function Signup() {
 
     try {
       setLoading(true);
-
-      // Updated to use authService
       const { user } = await authService.signup(name, email, password);
       console.log("✅ Signed up:", user);
 

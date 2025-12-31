@@ -14,7 +14,6 @@ function BottomNavigation() {
   const location = useLocation();
   const [activeTab, setActiveTab] = useState('scan');
 
-  // Update active tab based on current route
   useEffect(() => {
     const path = location.pathname;
     if (path === '/' || path === '/scan') {
@@ -26,7 +25,7 @@ function BottomNavigation() {
     } else if (path === '/profile') {
       setActiveTab('profile');
     } else if (path === '/results') {
-      setActiveTab('scan'); // Keep scan active on results page
+      setActiveTab('scan');
     }
   }, [location.pathname]);
 
@@ -66,7 +65,7 @@ function BottomNavigation() {
           <button
             key={id}
             onClick={(e) => {
-              e.preventDefault(); // Prevent default button behavior
+              e.preventDefault();
               handleNavigation(id, path);
             }}
             style={{
@@ -80,10 +79,10 @@ function BottomNavigation() {
               color: activeTab === id ? '#9333ea' : '#6b7280',
               cursor: 'pointer',
               transition: 'color 0.2s',
-              outline: 'none', // Remove focus outline
-              WebkitTapHighlightColor: 'transparent', // Remove tap highlight on mobile
+              outline: 'none',
+              WebkitTapHighlightColor: 'transparent',
             }}
-            onMouseDown={(e) => e.preventDefault()} // Prevent visual shift on click
+            onMouseDown={(e) => e.preventDefault()}
           >
             <Icon size={22} strokeWidth={1.5} />
             <span style={{ fontSize: '0.72rem', marginTop: '0.15rem' }}>

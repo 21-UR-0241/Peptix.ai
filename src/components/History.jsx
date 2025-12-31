@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import BottomNavigation from '../components/BottomNavigation';
-import { historyService } from '../services/history.js'; // Add this import
+import { historyService } from '../services/history.js';
 
 function History() {
   const navigate = useNavigate();
@@ -17,12 +17,10 @@ function History() {
 
   const fetchHistory = async () => {
     try {
-      // Updated to use historyService
       const data = await historyService.getHistory();
       setHistory(data.history || []);
     } catch (error) {
       console.error('Failed to fetch history:', error);
-      // Check if it's an auth error
       if (error.message.includes('401') || error.message.includes('Unauthorized')) {
         navigate('/login');
       }
@@ -35,7 +33,6 @@ function History() {
     if (!confirm('Are you sure you want to delete this entry?')) return;
 
     try {
-      // Updated to use historyService
       await historyService.deleteHistory(id);
       setHistory(history.filter(item => item.id !== id));
       setSelectedItem(null);
@@ -44,11 +41,8 @@ function History() {
     }
   };
 
-  // Optimize Cloudinary image URL with transformations
   const getOptimizedImageUrl = (url, transformation = 'thumbnail') => {
     if (!url) return null;
-    
-    // Check if it's a Cloudinary URL
     if (!url.includes('cloudinary.com')) return url;
 
     const transformations = {
@@ -56,8 +50,6 @@ function History() {
       modal: 'w_800,h_600,c_limit,q_auto,f_auto',
       full: 'q_auto,f_auto'
     };
-
-    // Insert transformation into Cloudinary URL
     const uploadIndex = url.indexOf('/upload/');
     if (uploadIndex === -1) return url;
 
@@ -159,7 +151,7 @@ function History() {
     }}>
       <main style={{
         flex: 1,
-        paddingBottom: '5rem', // Space for bottom navigation
+        paddingBottom: '5rem',
         overflowY: 'auto'
       }}>
         <div style={{

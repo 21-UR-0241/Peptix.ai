@@ -51,14 +51,12 @@ export default function PeptixHome() {
     },
   ];
 
-  // Fetch current user on mount
   useEffect(() => {
     fetchUser();
   }, []);
 
   const fetchUser = async () => {
     try {
-      // Updated to use authService
       const data = await authService.getCurrentUser();
       if (data.user) {
         setUser(data.user);
@@ -72,7 +70,6 @@ export default function PeptixHome() {
 
   const handleLogout = async () => {
     try {
-      // Updated to use authService
       await authService.logout();
       setUser(null);
       setShowDropdown(false);
@@ -95,7 +92,6 @@ export default function PeptixHome() {
     };
   }, [stream]);
 
-  // Handle paste event
   useEffect(() => {
     const handlePaste = async (e) => {
       const items = e.clipboardData?.items;
@@ -209,22 +205,16 @@ export default function PeptixHome() {
     }
     setIsAnalyzing(true);
     try {
-      // Upload to Cloudinary first
       console.log('📤 Uploading image to Cloudinary...');
       const cloudinaryResult = await uploadImageToCloudinary(capturedBlob);
       console.log('✅ Image uploaded:', cloudinaryResult.url);
-      
-      // Store the Cloudinary URL
       sessionStorage.setItem('uploadedImage', cloudinaryResult.url);
       sessionStorage.setItem('imagePublicId', cloudinaryResult.publicId);
-      
-      // Analyze with AI
       const result = await analyzeImageWithAI(capturedBlob);
       if (!result || !result.peptides || result.peptides.length === 0) {
         throw new Error('No valid recommendations received from AI');
       }
       
-      // Add Cloudinary URL to result
       result.imageUrl = cloudinaryResult.url;
       result.imagePublicId = cloudinaryResult.publicId;
       
@@ -277,7 +267,6 @@ export default function PeptixHome() {
     );
   }
 
-  // Compact sizing knobs (easy to tweak)
   const BTN_PAD_Y = '0.72rem';
   const BTN_FONT = '0.88rem';
 

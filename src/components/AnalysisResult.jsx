@@ -13,12 +13,12 @@ import {
 } from 'lucide-react';
 
 function PeptideResultsUI({
-  problems = [],         // NEW: list of problems found
+  problems = [],
   alreadyAchieved = [],
   recommendations = [],
   profileImage = null,
 }) {
-  const [view, setView] = useState('problems'); // 'problems' | 'solutions'
+  const [view, setView] = useState('problems');
   const [currentPage, setCurrentPage] = useState(0);
 
   const itemsPerPage = 3;
@@ -465,8 +465,6 @@ function PeptideResultsUI({
           ].map(({ id, icon: Icon, label }) => (
             <button
               key={id}
-              // Replace with your active-tab handler if needed:
-              // onClick={() => setActiveTab(id)}
               style={{
                 display: 'flex',
                 flexDirection: 'column',

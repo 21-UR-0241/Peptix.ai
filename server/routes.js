@@ -27,7 +27,7 @@ passport.use(
       try {
         const email = profile.emails?.[0]?.value;
         const name = profile.displayName || profile.name?.givenName || "User";
-        const googleProfilePicture = profile.photos?.[0]?.value; // ✅ Get Google profile picture
+        const googleProfilePicture = profile.photos?.[0]?.value;
 
         if (!email) {
           return done(new Error("No email from Google"), null);
@@ -44,8 +44,6 @@ passport.use(
         let user;
         if (existingUser.length) {
           user = existingUser[0];
-          
-          // ✅ Update profile picture if user doesn't have one
           if (!user.profilePicture && googleProfilePicture) {
             await db
               .update(users)
@@ -62,7 +60,7 @@ passport.use(
               name,
               email: normalizedEmail,
               passwordHash: "",
-              profilePicture: googleProfilePicture || null, // ✅ Save Google profile picture
+              profilePicture: googleProfilePicture || null,
             })
             .returning({ 
               id: users.id, 
@@ -94,14 +92,12 @@ function sha256(input) {
 function makeToken() {
   return crypto.randomBytes(32).toString("hex");
 }
-
-// ✅ UPDATED: Cookie options for cross-domain authentication
 function cookieOptions() {
   const isProd = process.env.NODE_ENV === "production";
   return {
     httpOnly: true,
-    sameSite: isProd ? "none" : "lax", // 'none' allows cross-domain cookies
-    secure: isProd, // Must be true in production for sameSite: 'none'
+    sameSite: isProd ? "none" : "lax",
+    secure: isProd,
     path: "/",
   };
 }
@@ -130,7 +126,7 @@ async function getUserFromRequest(req) {
       id: users.id, 
       email: users.email, 
       name: users.name,
-      profilePicture: users.profilePicture // ✅ Include profile picture
+      profilePicture: users.profilePicture
     })
     .from(users)
     .where(eq(users.id, sessionRows[0].userId))
@@ -273,8 +269,6 @@ router.put("/auth/change-password", async (req, res) => {
     if (newPassword.length < 6) {
       return res.status(400).json({ error: "PASSWORD_TOO_SHORT" });
     }
-
-    // Get user with password hash
     const userRows = await db
       .select()
       .from(users)
@@ -286,23 +280,18 @@ router.put("/auth/change-password", async (req, res) => {
     }
 
     const fullUser = userRows[0];
-
-    // Check if user has a password (Google users might not)
     if (!fullUser.passwordHash) {
       return res.status(400).json({ 
         error: "GOOGLE_ACCOUNT",
         message: "Google accounts cannot change password. Please use Google to sign in."
       });
     }
-
-    // Verify current password
     const isValid = await bcrypt.compare(String(currentPassword), fullUser.passwordHash);
     
     if (!isValid) {
       return res.status(401).json({ error: "INVALID_CURRENT_PASSWORD" });
     }
 
-    // Hash new password
     const newPasswordHash = await bcrypt.hash(String(newPassword), 10);
 
     // Update password
@@ -595,7 +584,6 @@ router.delete("/history/:id", async (req, res) => {
 // IMAGE UPLOAD ROUTES
 // ============================================================================
 
-// Upload image (returns base64 for now, can be upgraded to Cloudinary later)
 router.post("/upload-image", async (req, res) => {
   try {
     const { image } = req.body;
@@ -605,9 +593,6 @@ router.post("/upload-image", async (req, res) => {
     }
 
     console.log("📸 Upload route hit - returning base64 as URL");
-
-    // For now, just return the base64 image as the URL
-    // You can upgrade this to use Cloudinary later
     return res.json({
       url: image,
       publicId: "temp-" + Date.now(),
@@ -622,7 +607,6 @@ router.post("/upload-image", async (req, res) => {
   }
 });
 
-// Delete image from Cloudinary (optional, for cleanup)
 router.delete("/delete-image/:publicId", async (req, res) => {
   try {
     const user = await getUserFromRequest(req);
@@ -653,7 +637,6 @@ router.delete("/delete-image/:publicId", async (req, res) => {
 // PROFILE PICTURE ROUTES
 // ============================================================================
 
-// Update profile picture
 router.put("/auth/profile/picture", async (req, res) => {
   console.log("📸 Profile picture update request received");
   try {
@@ -670,14 +653,11 @@ router.put("/auth/profile/picture", async (req, res) => {
       return res.status(400).json({ error: "NO_IMAGE_PROVIDED" });
     }
 
-    // Validate base64 image
     if (!profilePicture.startsWith('data:image/')) {
       return res.status(400).json({ error: "INVALID_IMAGE_FORMAT" });
     }
 
     console.log("✅ Updating profile picture for user:", user.id);
-
-    // Update user's profile picture
     const updated = await db
       .update(users)
       .set({ profilePicture: profilePicture })

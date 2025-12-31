@@ -4,7 +4,7 @@ import { User, LogOut, UserCircle } from 'lucide-react';
 import AnimatedLogo from '../components/AnimatedLogo';
 import BottomNavigation from '../components/BottomNavigation';
 import { Sparkles, Shield, AlertCircle, Cpu } from 'lucide-react';
-import { authService } from '../services/auth.js'; // Add this import
+import { authService } from '../services/auth.js';
 
 function About() {
   const navigate = useNavigate();
@@ -12,14 +12,12 @@ function About() {
   const [loading, setLoading] = useState(true);
   const [showDropdown, setShowDropdown] = useState(false);
 
-  // Fetch current user on mount
   useEffect(() => {
     fetchUser();
   }, []);
 
   const fetchUser = async () => {
     try {
-      // Updated to use authService
       const data = await authService.getCurrentUser();
       if (data.user) {
         setUser(data.user);
@@ -33,7 +31,6 @@ function About() {
 
   const handleLogout = async () => {
     try {
-      // Updated to use authService
       await authService.logout();
       setUser(null);
       setShowDropdown(false);

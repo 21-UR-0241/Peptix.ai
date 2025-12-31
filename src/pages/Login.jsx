@@ -1,7 +1,7 @@
 
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { authService } from "../services/auth.js"; // Add this import
+import { authService } from "../services/auth.js";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -115,8 +115,6 @@ export default function Login() {
 
     try {
       setLoading(true);
-
-      // Updated to use authService
       const { user } = await authService.login(email, password);
       console.log("✅ Logged in:", user);
       
@@ -130,7 +128,6 @@ export default function Login() {
   };
 
   const handleGoogleLogin = () => {
-    // Updated to use authService
     authService.loginWithGoogle();
   };
 

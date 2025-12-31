@@ -9,8 +9,8 @@ import {
   UserCircle,
 } from 'lucide-react';
 import BottomNavigation from '../components/BottomNavigation';
-import { authService } from '../services/auth.js'; // Add this
-import { historyService } from '../services/history.js'; // Add this
+import { authService } from '../services/auth.js';
+import { historyService } from '../services/history.js';
 
 function Results() {
   const navigate = useNavigate();
@@ -22,14 +22,12 @@ function Results() {
   const [loading, setLoading] = useState(true);
   const [showDropdown, setShowDropdown] = useState(false);
 
-  // Fetch current user on mount
   useEffect(() => {
     fetchUser();
   }, []);
 
   const fetchUser = async () => {
     try {
-      // Updated to use authService
       const data = await authService.getCurrentUser();
       if (data.user) {
         setUser(data.user);
@@ -43,7 +41,6 @@ function Results() {
 
   const handleLogout = async () => {
     try {
-      // Updated to use authService
       await authService.logout();
       setUser(null);
       setShowDropdown(false);
@@ -66,7 +63,6 @@ function Results() {
     }
   }, [analysisResult]);
 
-  // Save to history when component loads
   useEffect(() => {
     if (analysisResult && !historySaved) {
       saveToHistory(analysisResult);
@@ -74,7 +70,6 @@ function Results() {
     }
   }, [analysisResult, historySaved]);
 
-  // Helper function to extract product name
   const extractProductName = (result) => {
     if (result?.analysis?.mainIssues?.length > 0) {
       return result.analysis.mainIssues[0].title || 'Health Analysis';
@@ -85,7 +80,6 @@ function Results() {
     return 'Health Analysis';
   };
 
-  // Helper function to calculate health score
   const calculateHealthScore = (result) => {
     const issuesCount = result?.analysis?.mainIssues?.length || 0;
     const achievedCount = result?.analysis?.alreadyAchieved?.length || 0;
@@ -94,7 +88,6 @@ function Results() {
     return Math.max(0, Math.min(100, score));
   };
 
-  // Format analysis for storage
   const formatAnalysisForHistory = (result) => {
     let text = '';
     
@@ -139,18 +132,14 @@ function Results() {
     return text.trim() || 'Analysis completed successfully.';
   };
 
-  // Save to history database with Cloudinary URL
-// Save to history database with Cloudinary URL
   const saveToHistory = async (result) => {
     try {
-      // Check if already saved
       const alreadySaved = sessionStorage.getItem('historySaved');
       if (alreadySaved === 'true') {
         console.log('ℹ️ History already saved, skipping duplicate...');
         return;
       }
 
-      // Get Cloudinary URL from the analysis result
       const cloudinaryUrl = result.imageUrl;
       
       if (!cloudinaryUrl) {
@@ -165,7 +154,6 @@ function Results() {
       console.log('💾 Saving to history with Cloudinary URL...');
       console.log('📷 Cloudinary URL:', cloudinaryUrl);
 
-      // Updated to use historyService
       await historyService.saveHistory(
         productName,
         analysisText,
@@ -849,35 +837,35 @@ function Results() {
           )}
 
          {/* Scan Another Photo Button with Hover Animation */}
-<button
-  onClick={handleNewScan}
-  style={{
-    width: '100%',
-    padding: '1rem',
-    background: '#8b5cf6',
-    border: 'none',
-    borderRadius: '12px',
-    color: '#ffffff',
-    fontSize: '1rem',
-    fontWeight: '600',
-    cursor: 'pointer',
-    marginBottom: '2rem',
-    transition: 'all 0.3s ease',
-    boxShadow: '0 0 0 rgba(167, 139, 250, 0)',
-  }}
-  onMouseEnter={(e) => {
-    e.currentTarget.style.transform = 'translateY(-4px) scale(1.02)';
-    e.currentTarget.style.boxShadow = '0 8px 24px rgba(167, 139, 250, 0.5)';
-    e.currentTarget.style.background = '#9333ea';
-  }}
-  onMouseLeave={(e) => {
-    e.currentTarget.style.transform = 'translateY(0) scale(1)';
-    e.currentTarget.style.boxShadow = '0 0 0 rgba(167, 139, 250, 0)';
-    e.currentTarget.style.background = '#8b5cf6';
-  }}
->
-  Scan another photo
-</button>
+              <button
+                onClick={handleNewScan}
+                style={{
+                  width: '100%',
+                  padding: '1rem',
+                  background: '#8b5cf6',
+                  border: 'none',
+                  borderRadius: '12px',
+                  color: '#ffffff',
+                  fontSize: '1rem',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  marginBottom: '2rem',
+                  transition: 'all 0.3s ease',
+                  boxShadow: '0 0 0 rgba(167, 139, 250, 0)',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-4px) scale(1.02)';
+                  e.currentTarget.style.boxShadow = '0 8px 24px rgba(167, 139, 250, 0.5)';
+                  e.currentTarget.style.background = '#9333ea';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                  e.currentTarget.style.boxShadow = '0 0 0 rgba(167, 139, 250, 0)';
+                  e.currentTarget.style.background = '#8b5cf6';
+                }}
+              >
+                Scan another photo
+              </button>
         </div>
       </main>
 
