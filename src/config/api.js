@@ -10,6 +10,7 @@ export const API_ENDPOINTS = {
   AUTH_LOGOUT: `${API_BASE_URL}/api/auth/logout`,
   AUTH_ME: `${API_BASE_URL}/api/auth/me`,
   AUTH_UPDATE_PROFILE: `${API_BASE_URL}/api/auth/update-profile`,
+  AUTH_UPDATE_PROFILE_PICTURE: `${API_BASE_URL}/api/auth/profile/picture`,
   AUTH_REMOVE_PROFILE_PICTURE: `${API_BASE_URL}/api/auth/profile/picture`, // ✅ NEW
   AUTH_CHANGE_PASSWORD: `${API_BASE_URL}/api/auth/change-password`,
   AUTH_GOOGLE: `${API_BASE_URL}/api/auth/google`,
