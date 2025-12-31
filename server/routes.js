@@ -1,3 +1,5 @@
+
+//server/routes.js
 import { Router } from "express";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
@@ -25,6 +27,7 @@ passport.use(
       try {
         const email = profile.emails?.[0]?.value;
         const name = profile.displayName || profile.name?.givenName || "User";
+        const googleProfilePicture = profile.photos?.[0]?.value; // ✅ Get Google profile picture
 
         if (!email) {
           return done(new Error("No email from Google"), null);
@@ -32,7 +35,6 @@ passport.use(
 
         const normalizedEmail = email.toLowerCase().trim();
 
-        // Check if user exists
         let existingUser = await db
           .select()
           .from(users)
@@ -40,22 +42,34 @@ passport.use(
           .limit(1);
 
         let user;
-
         if (existingUser.length) {
-          // User exists, use existing user
           user = existingUser[0];
+          
+          // ✅ Update profile picture if user doesn't have one
+          if (!user.profilePicture && googleProfilePicture) {
+            await db
+              .update(users)
+              .set({ profilePicture: googleProfilePicture })
+              .where(eq(users.id, user.id));
+            user.profilePicture = googleProfilePicture;
+          }
+          
           console.log("✅ Existing Google user logged in:", user.email);
         } else {
-          // Create new user (Google users don't need a password hash)
           const inserted = await db
             .insert(users)
             .values({
               name,
               email: normalizedEmail,
-              passwordHash: "", // Empty for Google OAuth users
+              passwordHash: "",
+              profilePicture: googleProfilePicture || null, // ✅ Save Google profile picture
             })
-            .returning({ id: users.id, email: users.email, name: users.name });
-
+            .returning({ 
+              id: users.id, 
+              email: users.email, 
+              name: users.name,
+              profilePicture: users.profilePicture 
+            });
           user = inserted[0];
           console.log("✅ New Google user created:", user.email);
         }
@@ -97,7 +111,6 @@ async function getUserFromRequest(req) {
   if (!rawToken) return null;
 
   const refreshTokenHash = sha256(String(rawToken));
-
   const sessionRows = await db
     .select({ userId: authSessions.userId })
     .from(authSessions)
@@ -113,14 +126,18 @@ async function getUserFromRequest(req) {
   if (!sessionRows.length) return null;
 
   const userRows = await db
-    .select({ id: users.id, email: users.email, name: users.name })
+    .select({ 
+      id: users.id, 
+      email: users.email, 
+      name: users.name,
+      profilePicture: users.profilePicture // ✅ Include profile picture
+    })
     .from(users)
     .where(eq(users.id, sessionRows[0].userId))
     .limit(1);
 
   return userRows[0] || null;
 }
-
 // ============================================================================
 // AUTHENTICATION ROUTES
 // ============================================================================
@@ -629,6 +646,95 @@ router.delete("/delete-image/:publicId", async (req, res) => {
     return res.status(500).json({ 
       error: error?.message || "CLOUDINARY_DELETE_FAILED" 
     });
+  }
+});
+
+// ============================================================================
+// PROFILE PICTURE ROUTES
+// ============================================================================
+
+// Update profile picture
+router.put("/auth/profile/picture", async (req, res) => {
+  console.log("📸 Profile picture update request received");
+  try {
+    const user = await getUserFromRequest(req);
+    
+    if (!user) {
+      console.log("❌ Unauthorized profile picture update attempt");
+      return res.status(401).json({ error: "UNAUTHORIZED" });
+    }
+
+    const { profilePicture } = req.body;
+    
+    if (!profilePicture) {
+      return res.status(400).json({ error: "NO_IMAGE_PROVIDED" });
+    }
+
+    // Validate base64 image
+    if (!profilePicture.startsWith('data:image/')) {
+      return res.status(400).json({ error: "INVALID_IMAGE_FORMAT" });
+    }
+
+    console.log("✅ Updating profile picture for user:", user.id);
+
+    // Update user's profile picture
+    const updated = await db
+      .update(users)
+      .set({ profilePicture: profilePicture })
+      .where(eq(users.id, user.id))
+      .returning({ 
+        id: users.id, 
+        email: users.email, 
+        name: users.name,
+        profilePicture: users.profilePicture
+      });
+
+    if (!updated.length) {
+      return res.status(404).json({ error: "USER_NOT_FOUND" });
+    }
+
+    console.log("✅ Profile picture updated successfully");
+    return res.json({ user: updated[0] });
+  } catch (e) {
+    console.error("❌ Error updating profile picture:", e);
+    return res.status(500).json({ error: e?.message || "UPDATE_PICTURE_FAILED" });
+  }
+});
+
+// Remove profile picture
+router.delete("/auth/profile/picture", async (req, res) => {
+  console.log("🗑️ Profile picture removal request received");
+  try {
+    const user = await getUserFromRequest(req);
+    
+    if (!user) {
+      console.log("❌ Unauthorized profile picture removal attempt");
+      return res.status(401).json({ error: "UNAUTHORIZED" });
+    }
+
+    console.log("✅ Removing profile picture for user:", user.id);
+
+    // Remove user's profile picture
+    const updated = await db
+      .update(users)
+      .set({ profilePicture: null })
+      .where(eq(users.id, user.id))
+      .returning({ 
+        id: users.id, 
+        email: users.email, 
+        name: users.name,
+        profilePicture: users.profilePicture
+      });
+
+    if (!updated.length) {
+      return res.status(404).json({ error: "USER_NOT_FOUND" });
+    }
+
+    console.log("✅ Profile picture removed successfully");
+    return res.json({ user: updated[0] });
+  } catch (e) {
+    console.error("❌ Error removing profile picture:", e);
+    return res.status(500).json({ error: e?.message || "REMOVE_PICTURE_FAILED" });
   }
 });
 

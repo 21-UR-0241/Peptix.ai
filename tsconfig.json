@@ -13,5 +13,5 @@
     "resolveJsonModule": true,
     "types": ["node"]
   },
-  "include": ["server/**/*.ts", "src/**/*.ts", "src/**/*.mts", "server/routes.js", "server/routes.js", "server/db.js"]
+  "include": ["server/**/*.ts", "src/**/*.ts", "src/**/*.mts", "server/routes.js", "server/routes.js"]
 }
